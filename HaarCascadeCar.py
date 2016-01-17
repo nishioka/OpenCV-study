@@ -9,13 +9,19 @@ import os
 if __name__ == '__main__':
 
     # 顔判定で使うxmlファイルを指定する。
-    cascade_path =  os.path.dirname(os.path.abspath(__file__)) + '/data/lbpcascades/lbpcascade_animeface.xml'
+    cascade_path =  os.path.dirname(os.path.abspath(__file__)) + '/data/haarcascades/haarcascade_cars.xml'
     print(cascade_path)
     cascade = cv2.CascadeClassifier(cascade_path)
 
     # 動画の読み込み
-    cap = cv2.VideoCapture('./anime.mp4')
+    cap = cv2.VideoCapture('./assets/cars.mp4')
+    # 出力先
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    size = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fourcc = 'DIVX'
 
+    out = cv2.VideoWriter('./output.mp4', cv2.VideoWriter_fourcc(*fourcc), fps, size)
+    
     while cap.isOpened():
         ret, frame = cap.read()
 
@@ -26,6 +32,8 @@ if __name__ == '__main__':
 
             # グレースケールに変換
             frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # ヒストグラムの平坦化
+            frame_gray = cv2.equalizeHist(frame_gray);
 
             #顔判定
             """
@@ -54,12 +62,14 @@ if __name__ == '__main__':
 
                 # 表示
                 cv2.imshow("Show FACES Image", frame_result)
+        
+            out.write(frame_result)
 
         # qを押したら終了。
         k = cv2.waitKey(1)
         if k == ord('q'):
             break
 
-    cv2.waitKey(0)
     cv2.destroyAllWindows()
     cap.release()
+    out.release()
